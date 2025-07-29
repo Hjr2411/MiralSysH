@@ -1,0 +1,141 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MuralSysH - Visualização</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f2f2f7;
+      --card: #ffffff;
+      --primary: #007aff;
+      --text: #1c1c1e;
+      --radius: 12px;
+    }body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--bg);
+  padding: 1rem;
+}
+
+h1, h2 {
+  color: var(--text);
+}
+
+.container {
+  display: grid;
+  gap: 1rem;
+}
+
+.card {
+  background: var(--card);
+  padding: 1rem;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+canvas {
+  max-width: 100%;
+}
+
+  </style>
+</head>
+<body>
+  <h1>MuralSysH - Painel de Desempenho</h1>
+  <div class="container">
+    <div class="card">
+      <h2>Progresso da Meta Mensal</h2>
+      <canvas id="metaChart"></canvas>
+    </div>
+    <div class="card">
+      <h2>Chamados por Dia (Últimos 7 dias)</h2>
+      <canvas id="chamadosChart"></canvas>
+    </div>
+  </div>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVYvTFM3yoMta2T5AX_3FewmhtkvE9SOA",
+      authDomain: "muralhsys.firebaseapp.com",
+      databaseURL: "https://muralhsys-default-rtdb.firebaseio.com",
+      projectId: "muralhsys",
+      storageBucket: "muralhsys.firebasestorage.app",
+      messagingSenderId: "652168528324",
+      appId: "1:652168528324:web:741aa4779c1f7a149c6491",
+      measurementId: "G-FMKBG2M0PE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    async function carregarDesempenho() {
+      const desempenhoRef = ref(db, 'mural/desempenho');
+      const snapshot = await get(desempenhoRef);
+
+      let totalChamados = 0;
+      const diaChamados = {};
+
+      if (snapshot.exists()) {
+        const dados = snapshot.val();
+        for (let data in dados) {
+          for (let usuario in dados[data]) {
+            const reg = dados[data][usuario];
+            totalChamados += reg.chamados || 0;
+            diaChamados[data] = (diaChamados[data] || 0) + (reg.chamados || 0);
+          }
+        }
+      }
+
+      desenharGraficos(totalChamados, diaChamados);
+    }
+
+    function desenharGraficos(total, diaChamados) {
+      const meta = 300; // Meta mensal de chamados resolvidos
+      const progresso = Math.min(total / meta, 1);
+
+      new Chart(document.getElementById("metaChart"), {
+        type: 'doughnut',
+        data: {
+          labels: ['Concluído', 'Faltando'],
+          datasets: [{
+            data: [total, meta - total],
+            backgroundColor: ['#007aff', '#d1d1d6']
+          }]
+        },
+        options: {
+          cutout: '70%',
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: { enabled: true },
+          }
+        }
+      });
+
+      const labels = Object.keys(diaChamados).sort();
+      const dados = labels.map(dia => diaChamados[dia]);
+
+      new Chart(document.getElementById("chamadosChart"), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Chamados Resolvidos',
+            data: dados,
+            backgroundColor: '#007aff'
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    carregarDesempenho();
+  </script></body>
+</html>
