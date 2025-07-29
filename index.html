@@ -2,132 +2,165 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MuralSysH - Login</title>
+  <title>MuralSysH - Painel</title>
   <style>
     :root {
       --bg: #f9f9fb;
       --card: #ffffff;
       --primary: #007aff;
-      --primary-dark: #0051b6;
       --text: #1c1c1e;
-      --input: #f2f2f7;
+      --gray: #e5e5ea;
       --radius: 12px;
     }* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
 
 body {
   background-color: var(--bg);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  padding: 1rem;
 }
 
-.card {
-  background-color: var(--card);
-  padding: 2rem;
-  border-radius: var(--radius);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  width: 100%;
-  max-width: 400px;
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 1.5rem;
+h1, h2 {
   color: var(--text);
+  margin-bottom: 0.5rem;
 }
 
-input {
-  width: 100%;
-  padding: 0.75rem;
-  margin-bottom: 1rem;
-  background: var(--input);
-  border: none;
+.section {
+  background: var(--card);
+  margin-bottom: 1.5rem;
+  padding: 1rem;
   border-radius: var(--radius);
-  font-size: 1rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+.section label, .section input, .section textarea, .section select {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+input, textarea, select {
+  padding: 0.5rem;
+  border: 1px solid var(--gray);
+  border-radius: var(--radius);
+  background: #fff;
 }
 
 button {
-  width: 100%;
-  padding: 0.75rem;
   background-color: var(--primary);
-  color: white;
+  color: #fff;
   border: none;
+  padding: 0.6rem 1rem;
   border-radius: var(--radius);
-  font-size: 1rem;
   cursor: pointer;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background-color: var(--primary-dark);
-}
-
-.error {
-  color: red;
-  font-size: 0.9rem;
-  margin-bottom: 1rem;
-  text-align: center;
 }
 
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>MuralSysH</h1>
-    <div class="error" id="errorMsg"></div>
-    <form id="loginForm">
-      <input type="text" id="username" placeholder="Usuário" required />
-      <input type="password" id="password" placeholder="Senha" required />
-      <button type="submit">Entrar</button>
-    </form>
+  <h1>MuralSysH</h1>  <div class="section" id="folgas">
+    <h2>Folgas</h2>
+    <label>Nome</label>
+    <input type="text" id="folgaNome" />
+    <label>Data</label>
+    <input type="date" id="folgaData" />
+    <label>Status</label>
+    <select id="folgaStatus">
+      <option value="Agendada">Agendada</option>
+      <option value="Confirmada">Confirmada</option>
+      <option value="Concluída">Concluída</option>
+    </select>
+    <button onclick="salvarFolga()">Salvar Folga</button>
+  </div>  <div class="section" id="ferias">
+    <h2>Férias</h2>
+    <label>Nome</label>
+    <input type="text" id="feriasNome" />
+    <label>Início</label>
+    <input type="date" id="feriasInicio" />
+    <label>Fim</label>
+    <input type="date" id="feriasFim" />
+    <label>Observações</label>
+    <textarea id="feriasObs"></textarea>
+    <button onclick="salvarFerias()">Salvar Férias</button>
+  </div>  <div class="section" id="escala">
+    <h2>Escala Semanal</h2>
+    <label>Dia</label>
+    <select id="escalaDia">
+      <option value="segunda">Segunda</option>
+      <option value="terca">Terça</option>
+      <option value="quarta">Quarta</option>
+      <option value="quinta">Quinta</option>
+      <option value="sexta">Sexta</option>
+      <option value="sabado">Sábado</option>
+      <option value="domingo">Domingo</option>
+    </select>
+    <label>Colaboradores</label>
+    <input type="text" id="escalaNomes" placeholder="Ex: João, Maria" />
+    <button onclick="salvarEscala()">Salvar Escala</button>
+  </div>  <div class="section" id="desempenho">
+    <h2>Desempenho</h2>
+    <label>Nome</label>
+    <input type="text" id="desempenhoNome" />
+    <label>Data</label>
+    <input type="date" id="desempenhoData" />
+    <label>Produtividade (0-10)</label>
+    <input type="number" id="desempenhoProd" min="0" max="10" />
+    <label>Chamados Resolvidos</label>
+    <input type="number" id="desempenhoChamados" />
+    <label>Feedback</label>
+    <textarea id="desempenhoFeedback"></textarea>
+    <button onclick="salvarDesempenho()">Salvar Desempenho</button>
   </div>  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+    import { getDatabase, ref, set, update } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
     const firebaseConfig = {
-  apiKey: "AIzaSyCVYvTFM3yoMta2T5AX_3FewmhtkvE9SOA",
-  authDomain: "muralhsys.firebaseapp.com",
-  databaseURL: "https://muralhsys-default-rtdb.firebaseio.com",
-  projectId: "muralhsys",
-  storageBucket: "muralhsys.firebasestorage.app",
-  messagingSenderId: "652168528324",
-  appId: "1:652168528324:web:741aa4779c1f7a149c6491",
-  measurementId: "G-FMKBG2M0PE"
-};
+      apiKey: "AIzaSyCVYvTFM3yoMta2T5AX_3FewmhtkvE9SOA",
+      authDomain: "muralhsys.firebaseapp.com",
+      databaseURL: "https://muralhsys-default-rtdb.firebaseio.com",
+      projectId: "muralhsys",
+      storageBucket: "muralhsys.firebasestorage.app",
+      messagingSenderId: "652168528324",
+      appId: "1:652168528324:web:741aa4779c1f7a149c6491",
+      measurementId: "G-FMKBG2M0PE"
+    };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    document.getElementById("loginForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const errorMsg = document.getElementById("errorMsg");
+    window.salvarFolga = async () => {
+      const nome = document.getElementById("folgaNome").value;
+      const data = document.getElementById("folgaData").value;
+      const status = document.getElementById("folgaStatus").value;
+      await set(ref(db, `mural/folgas/${data}_${nome}`), { nome, status });
+      alert("Folga registrada!");
+    };
 
-      try {
-        const userRef = ref(db, `usuarios/${username}`);
-        const snapshot = await get(userRef);
+    window.salvarFerias = async () => {
+      const nome = document.getElementById("feriasNome").value;
+      const inicio = document.getElementById("feriasInicio").value;
+      const fim = document.getElementById("feriasFim").value;
+      const obs = document.getElementById("feriasObs").value;
+      await set(ref(db, `mural/ferias/${nome}`), { inicio, fim, obs });
+      alert("Férias registradas!");
+    };
 
-        if (!snapshot.exists()) {
-          errorMsg.textContent = "Usuário não encontrado.";
-          return;
-        }
+    window.salvarEscala = async () => {
+      const dia = document.getElementById("escalaDia").value;
+      const nomes = document.getElementById("escalaNomes").value;
+      await set(ref(db, `mural/escala/semanaAtual/${dia}`), nomes.split(",").map(n => n.trim()));
+      alert("Escala registrada!");
+    };
 
-        const user = snapshot.val();
-        if (user.senha !== password) {
-          errorMsg.textContent = "Senha incorreta.";
-          return;
-        }
-
-        localStorage.setItem("usuario", username);
-        localStorage.setItem("admin", user.admin);
-
-        window.location.href = "painel.html"; // próxima tela
-      } catch (error) {
-        console.error(error);
-        errorMsg.textContent = "Erro ao conectar. Tente novamente.";
-      }
-    });
+    window.salvarDesempenho = async () => {
+      const nome = document.getElementById("desempenhoNome").value;
+      const data = document.getElementById("desempenhoData").value;
+      const produtividade = parseInt(document.getElementById("desempenhoProd").value);
+      const chamados = parseInt(document.getElementById("desempenhoChamados").value);
+      const feedback = document.getElementById("desempenhoFeedback").value;
+      await set(ref(db, `mural/desempenho/${data}/${nome}`), {
+        produtividade, chamados, feedback
+      });
+      alert("Desempenho registrado!");
+    };
   </script></body>
 </html>
