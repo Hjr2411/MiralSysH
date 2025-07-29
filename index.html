@@ -1,0 +1,132 @@
+<!DOCTYPE html><html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MuralSysH - Login</title>
+  <style>
+    :root {
+      --bg: #f9f9fb;
+      --card: #ffffff;
+      --primary: #007aff;
+      --primary-dark: #0051b6;
+      --text: #1c1c1e;
+      --input: #f2f2f7;
+      --radius: 12px;
+    }* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+
+body {
+  background-color: var(--bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.card {
+  background-color: var(--card);
+  padding: 2rem;
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 400px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: var(--text);
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  background: var(--input);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+
+button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: var(--primary-dark);
+}
+
+.error {
+  color: red;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>MuralSysH</h1>
+    <div class="error" id="errorMsg"></div>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Usuário" required />
+      <input type="password" id="password" placeholder="Senha" required />
+      <button type="submit">Entrar</button>
+    </form>
+  </div>  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBCAnTFGReRhjXKeSeGrcH3enK6lL_Uf_Y",
+      authDomain: "planh-55e03.firebaseapp.com",
+      databaseURL: "https://planh-55e03-default-rtdb.firebaseio.com",
+      projectId: "planh-55e03",
+      storageBucket: "planh-55e03.appspot.com",
+      messagingSenderId: "288085753915",
+      appId: "1:288085753915:web:f413cff93946f357f71c1e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorMsg = document.getElementById("errorMsg");
+
+      try {
+        const userRef = ref(db, `usuarios/${username}`);
+        const snapshot = await get(userRef);
+
+        if (!snapshot.exists()) {
+          errorMsg.textContent = "Usuário não encontrado.";
+          return;
+        }
+
+        const user = snapshot.val();
+        if (user.senha !== password) {
+          errorMsg.textContent = "Senha incorreta.";
+          return;
+        }
+
+        localStorage.setItem("usuario", username);
+        localStorage.setItem("admin", user.admin);
+
+        window.location.href = "painel.html"; // próxima tela
+      } catch (error) {
+        console.error(error);
+        errorMsg.textContent = "Erro ao conectar. Tente novamente.";
+      }
+    });
+  </script></body>
+</html>
