@@ -1,11 +1,11 @@
 {
   "usuarios": {
     "helio": {
-      "senha": "123456",
+      "senha": "976168",
       "admin": true
     },
     "joao": {
-      "senha": "abc123",
+      "senha": "123",
       "admin": false
     }
   },
