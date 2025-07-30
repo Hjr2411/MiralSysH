@@ -48,8 +48,8 @@ async function initializeDefaultData() {
         if (!usersSnapshot.exists()) {
             // Create default users
             const defaultUsers = {
-                'HelioGoes': {
-                    nome: 'HelioGoes',
+              /*  'HelioGoes': {
+                    nome: 'H',
                     senha: '976168',
                     tipo: 'admin'
                 },
@@ -57,7 +57,7 @@ async function initializeDefaultData() {
                     nome: 'colaborador1',
                     senha: 'senha123',
                     tipo: 'leitor'
-                }
+                } */
             };
             
             await set(usersRef, defaultUsers);
