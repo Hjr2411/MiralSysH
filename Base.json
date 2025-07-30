@@ -5,6 +5,14 @@
       "senha": "97616896",
       "tipo": "admin"
     }
+"helio": {
+      "nome": "user",
+      "senha": "123456",
+      "tipo": "user"
+}
+
+
+    
   },
   "equipes": {
     "PosPagoN1": {
